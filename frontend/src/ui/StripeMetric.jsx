@@ -48,14 +48,14 @@ export const StripeMetric = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       whileHover={{ y: -4, transition: { type: "spring", stiffness: 400, damping: 28 } }}
-      className="cp-surface cp-lift group relative overflow-hidden p-6"
+      className="cp-surface cp-lift group relative min-w-0 overflow-hidden p-4 sm:p-6"
     >
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--accent)] to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
 
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-[13px] font-medium text-[var(--text-secondary)]">{label}</p>
-          <p className="font-display mt-2 text-[28px] font-bold tracking-tight text-[var(--text-primary)]">
+          <p className="font-display mt-2 text-xl font-bold tracking-tight text-[var(--text-primary)] sm:text-2xl md:text-[28px]">
             {display}
           </p>
           {trendLabel && (

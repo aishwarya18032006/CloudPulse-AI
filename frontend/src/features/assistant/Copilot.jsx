@@ -78,7 +78,7 @@ export const AIAssistant = () => {
       <motion.button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-4 right-4 z-50 flex h-14 items-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)] pl-4 pr-5 shadow-[var(--shadow-lg)] sm:bottom-6 sm:right-6"
+        className="fixed bottom-4 right-3 z-40 flex h-12 max-w-[calc(100vw-1.5rem)] items-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)] pl-3 pr-4 shadow-[var(--shadow-lg)] sm:bottom-6 sm:right-6 sm:h-14 sm:pl-4 sm:pr-5"
         whileHover={{ scale: 1.03, boxShadow: "var(--shadow-glow)" }}
         whileTap={{ scale: 0.97 }}
         aria-label="Open AI Assistant"

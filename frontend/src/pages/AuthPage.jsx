@@ -92,7 +92,7 @@ export const AuthPage = () => {
   };
 
   return (
-    <div className="relative min-h-screen">
+    <div className="cp-page-shell relative min-h-screen overflow-x-hidden">
       <PremiumCanvas />
       <div className="absolute right-6 top-6 z-20">
         <ThemeSwitch />
@@ -145,11 +145,11 @@ export const AuthPage = () => {
           </div>
         </section>
 
-        <section className="flex items-center justify-center p-6 sm:p-10 lg:p-12">
+        <section className="flex items-center justify-center p-4 sm:p-10 lg:p-12">
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="cp-glass w-full max-w-[440px] rounded-[var(--radius-xl)] p-8 sm:p-10"
+            className="cp-glass w-full max-w-[440px] min-w-0 rounded-[var(--radius-xl)] p-6 sm:p-10"
           >
             <div className="mb-8 lg:hidden">
               <BrandMark />

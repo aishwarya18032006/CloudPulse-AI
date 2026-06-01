@@ -137,14 +137,14 @@ Confidential — For internal use only
     <div className="min-w-0">
       <header className="mb-8 sm:mb-10">
         <p className="text-sm font-semibold text-[var(--accent)]">Export center</p>
-        <h1 className="font-display text-3xl font-extrabold tracking-tight">Reports</h1>
+        <h1 className="font-display text-2xl font-extrabold tracking-tight sm:text-3xl">Reports</h1>
         <p className="mt-2 text-[var(--text-secondary)]">Board-ready PDF layouts · one-click export</p>
       </header>
 
       <motion.section
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        className="cp-surface mb-10 p-8"
+        className="cp-surface mb-10 p-4 sm:p-6 md:p-8"
       >
         <h2 className="font-display text-lg font-bold">Generate PDF Report</h2>
         <p className="mt-1 text-sm text-[var(--text-secondary)]">
@@ -211,12 +211,12 @@ Confidential — For internal use only
           animate={{ opacity: 1, y: 0 }}
           className="cp-surface mb-10 overflow-hidden"
         >
-          <div className="border-b border-[var(--border)] bg-[var(--bg-subtle)] px-8 py-4">
+          <div className="border-b border-[var(--border)] bg-[var(--bg-subtle)] px-4 py-3 sm:px-8 sm:py-4">
             <h2 className="font-display font-bold">Report History</h2>
           </div>
-          <div className="divide-y divide-[var(--border)]">
+          <div className="cp-scroll-x divide-y divide-[var(--border)]">
             {history.map((r) => (
-              <div key={r.id} className="flex flex-wrap items-center justify-between gap-4 px-8 py-4">
+              <div key={r.id} className="flex min-w-[280px] flex-col gap-3 px-4 py-4 sm:min-w-0 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4 sm:px-8">
                 <div>
                   <p className="font-semibold text-[var(--text-primary)]">{cloudLabel(r.cloud_type)}</p>
                   <p className="text-sm text-[var(--text-secondary)]">
@@ -303,15 +303,15 @@ Confidential — For internal use only
             transition={{ delay: i * 0.06 }}
             className="cp-surface overflow-hidden"
           >
-            <div className="border-b border-[var(--border)] bg-[var(--bg-subtle)] px-8 py-4">
-              <div className="flex items-center justify-between">
+            <div className="border-b border-[var(--border)] bg-[var(--bg-subtle)] px-4 py-3 sm:px-8 sm:py-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="text-xs font-bold uppercase tracking-widest text-[var(--text-tertiary)]">{r.type}</span>
                 <span className="text-xs text-[var(--text-tertiary)]">{r.pages} pages</span>
               </div>
             </div>
 
-            <div className="p-8">
-              <div className="flex gap-4">
+            <div className="p-4 sm:p-6 md:p-8">
+              <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
                 <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]">
                   <HiOutlineDocumentText className="h-7 w-7" />
                 </div>
@@ -328,19 +328,19 @@ Confidential — For internal use only
                 <PreviewRow label="Recommendation" value={`Save ${formatCurrency(metrics.savings)}/mo`} highlight />
               </div>
 
-              <div className="mt-8 flex gap-3">
+              <div className="mt-6 flex flex-col gap-2 sm:mt-8 sm:flex-row sm:gap-3">
                 <motion.button
                   type="button"
                   onClick={() => download(r.id, r.title)}
                   disabled={loading === r.id}
                   whileHover={{ scale: loading === r.id ? 1 : 1.02 }}
                   whileTap={{ scale: loading === r.id ? 1 : 0.98 }}
-                  className="cp-btn-primary flex-1 py-3 disabled:opacity-70"
+                  className="cp-btn-primary w-full flex-1 py-3 disabled:opacity-70 sm:w-auto"
                 >
                   <HiOutlineArrowDownTray />
                   {loading === r.id ? "Preparing…" : "Export report"}
                 </motion.button>
-                <motion.button type="button" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="cp-btn-ghost px-5">
+                <motion.button type="button" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="cp-btn-ghost w-full px-5 sm:w-auto">
                   Preview
                 </motion.button>
               </div>

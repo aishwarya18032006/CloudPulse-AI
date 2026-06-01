@@ -43,20 +43,20 @@ export const WorkspacePage = () => {
   };
 
   return (
-    <div className="relative min-h-screen">
+    <div className="cp-page-shell relative min-h-screen overflow-x-hidden">
       <PremiumCanvas />
 
       <header className="relative z-20 border-b border-[var(--border)] bg-[var(--nav-bg)] backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <BrandMark size="sm" />
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-3 sm:h-16 sm:px-6">
+          <BrandMark size="sm" className="min-w-0" showWordmarkOnMobile={false} />
           <ThemeSwitch />
         </div>
       </header>
 
-      <main className="relative z-10 mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:py-16">
-        <div>
+      <main className="relative z-10 mx-auto w-full max-w-6xl min-w-0 px-3 py-6 sm:px-6 sm:py-12 lg:py-16">
+        <div className="min-w-0">
           <p className="text-sm font-semibold text-[var(--accent)]">Workspace</p>
-          <h1 className="font-display mt-2 text-4xl font-extrabold tracking-tight text-[var(--text-primary)] sm:text-5xl">
+          <h1 className="font-display mt-2 text-2xl font-extrabold tracking-tight text-[var(--text-primary)] sm:text-4xl lg:text-5xl">
             Choose Your Cloud Environment
           </h1>
           <p className="mt-4 max-w-2xl text-lg text-[var(--text-secondary)]">
@@ -69,7 +69,7 @@ export const WorkspacePage = () => {
           )}
         </div>
 
-        <Stagger className="mt-14 grid gap-6 md:grid-cols-2">
+        <Stagger className="mt-8 grid gap-4 sm:mt-14 sm:gap-6 md:grid-cols-2">
           {ENVIRONMENTS.map((env) => {
             const Icon = LOGOS[env.id];
             const m = previews[env.id];
@@ -85,16 +85,16 @@ export const WorkspacePage = () => {
                   transition={{ type: "spring", stiffness: 400, damping: 28 }}
                   className="cp-gradient-border cp-lift group w-full cursor-pointer text-left"
                 >
-                  <div className="relative overflow-hidden rounded-[calc(var(--radius-lg)-1px)] bg-[var(--bg-elevated)] p-8 shadow-[var(--shadow-sm)]">
+                  <div className="relative overflow-hidden rounded-[calc(var(--radius-lg)-1px)] bg-[var(--bg-elevated)] p-4 shadow-[var(--shadow-sm)] sm:p-6 md:p-8">
                     {env.badge && (
-                      <span className="absolute right-6 top-6 rounded-full bg-[#7C3AED]/10 px-3 py-1 text-xs font-semibold text-[#7C3AED]">
+                      <span className="absolute right-3 top-3 rounded-full bg-[#7C3AED]/10 px-2 py-0.5 text-[10px] font-semibold text-[#7C3AED] sm:right-6 sm:top-6 sm:px-3 sm:py-1 sm:text-xs">
                         {env.badge}
                       </span>
                     )}
 
-                    <div className="flex items-start gap-5">
+                    <div className="flex items-start gap-3 sm:gap-5">
                       <div
-                        className="flex h-16 w-16 items-center justify-center rounded-2xl"
+                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl sm:h-16 sm:w-16"
                         style={{ background: `${env.brandColor}14`, color: env.brandColor }}
                       >
                         {isDemo ? (
@@ -103,8 +103,8 @@ export const WorkspacePage = () => {
                           <Icon className="h-9 w-9" />
                         )}
                       </div>
-                      <div>
-                        <h2 className="font-display text-xl font-bold text-[var(--text-primary)]">{env.short}</h2>
+                      <div className="min-w-0 flex-1">
+                        <h2 className="font-display text-lg font-bold text-[var(--text-primary)] sm:text-xl">{env.short}</h2>
                         <p className="text-sm text-[var(--text-secondary)]">{env.name}</p>
                       </div>
                     </div>
@@ -118,7 +118,7 @@ export const WorkspacePage = () => {
                       ))}
                     </ul>
 
-                    <div className="mt-6 grid grid-cols-4 gap-3 rounded-xl bg-[var(--bg-subtle)] p-4">
+                    <div className="mt-6 grid grid-cols-2 gap-2 rounded-xl bg-[var(--bg-subtle)] p-3 sm:grid-cols-4 sm:gap-3 sm:p-4">
                       {[
                         { l: "Spend", v: formatCurrency(m.monthlyCost) },
                         { l: "CPU", v: `${m.cpu}%` },

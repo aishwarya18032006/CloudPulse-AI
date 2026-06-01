@@ -7,7 +7,7 @@ export const RegionAdvisor = ({ metrics }) => (
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay: 0.3 }}
-    className="cp-surface p-8"
+    className="cp-surface min-w-0 p-4 sm:p-6 md:p-8"
   >
     <h2 className="font-display text-xl font-bold">Green Region Migration</h2>
     <p className="mt-1 text-sm text-[var(--text-secondary)]">Compare current vs. AI-recommended region</p>

@@ -42,19 +42,19 @@ export const AnalyticsPage = () => {
 
   return (
     <div className="min-w-0">
-      <header className="mb-10 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-        <div>
+      <header className="mb-8 flex min-w-0 flex-col gap-4 sm:mb-10 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
+        <div className="min-w-0">
           <p className="text-sm font-semibold text-[var(--accent)]">Business intelligence</p>
-          <h1 className="font-display text-3xl font-extrabold tracking-tight">Analytics</h1>
+          <h1 className="font-display text-2xl font-extrabold tracking-tight sm:text-3xl">Analytics</h1>
           <p className="mt-2 text-[var(--text-secondary)]">Cost, carbon, utilization & health — unified view.</p>
         </div>
-        <div className="flex rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-1 shadow-[var(--shadow-xs)]">
+        <div className="flex w-full max-w-full flex-wrap rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-1 shadow-[var(--shadow-xs)] sm:w-auto">
           {RANGES.map((r) => (
             <button
               key={r}
               type="button"
               onClick={() => setRange(r)}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
+              className={`flex-1 rounded-lg px-2 py-2 text-xs font-semibold transition-colors sm:flex-none sm:px-4 sm:text-sm ${
                 range === r ? "bg-[var(--accent)] text-white shadow-sm" : "text-[var(--text-secondary)]"
               }`}
             >
@@ -66,7 +66,7 @@ export const AnalyticsPage = () => {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Panel title="Cost trends" sub={`Range: ${RANGE_LABELS[range]}`}>
-          <div className="h-72">
+          <div className="cp-chart-panel h-56 sm:h-72">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={metrics.costHistory.filter((d) => d.cost)}>
                 <CartesianGrid stroke={chart.grid} strokeDasharray="4 4" vertical={false} />
@@ -80,7 +80,7 @@ export const AnalyticsPage = () => {
         </Panel>
 
         <Panel title="Carbon trends" sub="kg CO₂ per month">
-          <div className="h-72">
+          <div className="cp-chart-panel h-56 sm:h-72">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={metrics.carbonHistory}>
                 <CartesianGrid stroke={chart.grid} strokeDasharray="4 4" vertical={false} />
@@ -94,7 +94,7 @@ export const AnalyticsPage = () => {
         </Panel>
 
         <Panel title="Savings forecast" sub="Actual vs optimized trajectory">
-          <div className="h-72">
+          <div className="cp-chart-panel h-56 sm:h-72">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={savingsData}>
                 <CartesianGrid stroke={chart.grid} strokeDasharray="4 4" vertical={false} />
@@ -110,7 +110,7 @@ export const AnalyticsPage = () => {
         </Panel>
 
         <Panel title="Resource utilization" sub="By workload category">
-          <div className="h-72">
+          <div className="cp-chart-panel h-56 sm:h-72">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={util} layout="vertical" margin={{ left: 8 }}>
                 <CartesianGrid stroke={chart.grid} strokeDasharray="4 4" horizontal={false} />
@@ -156,7 +156,7 @@ const Panel = ({ title, sub, children, className = "" }) => (
   <motion.section
     initial={{ opacity: 0, y: 16 }}
     animate={{ opacity: 1, y: 0 }}
-    className={`cp-surface p-8 ${className}`}
+    className={`cp-surface min-w-0 p-4 sm:p-6 md:p-8 ${className}`}
   >
     <h3 className="font-display text-lg font-bold">{title}</h3>
     <p className="mt-1 text-sm text-[var(--text-secondary)]">{sub}</p>

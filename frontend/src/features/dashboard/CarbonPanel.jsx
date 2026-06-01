@@ -13,13 +13,13 @@ export const CarbonPanel = ({ metrics }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.25 }}
-      className="cp-surface p-8"
+      className="cp-surface min-w-0 p-4 sm:p-6 md:p-8"
     >
       <h2 className="font-display text-xl font-bold">Carbon Intelligence</h2>
       <p className="mt-1 text-sm text-[var(--text-secondary)]">Footprint, green score & monthly trend</p>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-2">
-        <div className="flex items-center gap-10">
+        <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:gap-10">
           <div className="relative shrink-0">
             <svg width="128" height="128" className="-rotate-90">
               <circle cx="64" cy="64" r={r} fill="none" stroke="var(--bg-muted)" strokeWidth="10" />

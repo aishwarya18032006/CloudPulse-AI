@@ -46,9 +46,9 @@ export const ResourceDetection = ({ metrics }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
-      className="cp-surface p-8"
+      className="cp-surface min-w-0 p-4 sm:p-6 md:p-8"
     >
-      <div className="mb-6 flex items-start justify-between">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="font-display text-xl font-bold">Resource Detection</h2>
           <p className="mt-1 text-sm text-[var(--text-secondary)]">AI-identified waste and right-sizing opportunities</p>
@@ -58,7 +58,7 @@ export const ResourceDetection = ({ metrics }) => {
         </span>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 md:gap-4">
         {items.map((item, i) => {
           const s = statusStyle[item.status];
           return (

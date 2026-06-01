@@ -12,12 +12,12 @@ export const DashboardHero = ({ metrics }) => {
     <motion.section
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      className="cp-glass mb-10 overflow-hidden rounded-[var(--radius-xl)] p-8 sm:p-10"
+      className="cp-glass mb-6 overflow-hidden rounded-[var(--radius-xl)] p-4 sm:mb-10 sm:p-8 md:p-10"
     >
       <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="text-sm font-semibold text-[var(--accent)]">{providerName}</p>
-          <h1 className="font-display mt-2 text-3xl font-extrabold tracking-tight text-[var(--text-primary)] sm:text-4xl">
+          <h1 className="font-display mt-2 text-2xl font-extrabold tracking-tight text-[var(--text-primary)] sm:text-3xl md:text-4xl">
             Welcome back, {first}
           </h1>
           <p className="mt-2 max-w-lg text-[var(--text-secondary)]">
@@ -25,7 +25,7 @@ export const DashboardHero = ({ metrics }) => {
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-4">
+        <div className="grid w-full gap-3 sm:grid-cols-2 sm:gap-4 lg:flex lg:w-auto lg:flex-wrap">
           <StatusCard
             icon={HiOutlineSignal}
             label="Cloud Efficiency"
@@ -47,7 +47,7 @@ export const DashboardHero = ({ metrics }) => {
 };
 
 const StatusCard = ({ icon: Icon, label, value, sub, accent }) => (
-  <div className="min-w-[200px] rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)] p-5 shadow-[var(--shadow-sm)]">
+  <div className="min-w-0 w-full rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)] p-4 shadow-[var(--shadow-sm)] sm:p-5">
     <div className="flex items-center gap-2 text-[var(--text-secondary)]">
       <Icon className="h-4 w-4" style={{ color: accent }} />
       <span className="text-xs font-semibold uppercase tracking-wider">{label}</span>

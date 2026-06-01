@@ -17,9 +17,9 @@ export const InfrastructureTwin = ({ metrics }) => {
       className="relative overflow-hidden rounded-[var(--radius-xl)] p-[1px]"
       style={{ background: "linear-gradient(135deg, var(--accent), var(--cyan))" }}
     >
-      <div className="rounded-[calc(var(--radius-xl)-1px)] bg-[var(--bg-elevated)] p-8 sm:p-10">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div>
+      <div className="min-w-0 rounded-[calc(var(--radius-xl)-1px)] bg-[var(--bg-elevated)] p-4 sm:p-8 md:p-10">
+        <div className="flex flex-col gap-4 sm:gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="min-w-0">
             <span className="inline-flex items-center gap-1 rounded-full bg-[var(--accent-soft)] px-3 py-1 text-xs font-bold text-[var(--accent)]">
               <HiOutlineSparkles className="h-3.5 w-3.5" /> Hero · Digital Twin
             </span>
@@ -33,7 +33,7 @@ export const InfrastructureTwin = ({ metrics }) => {
           <button
             type="button"
             onClick={() => setOptimized(!optimized)}
-            className="cp-btn-primary shrink-0"
+            className="cp-btn-primary w-full shrink-0 sm:w-auto"
           >
             {optimized ? "View before" : "View after optimization"}
           </button>

@@ -91,7 +91,7 @@ export const ConnectDialog = ({ provider, onClose, onSuccess }) => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.35 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-md"
+        className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-black/40 p-3 backdrop-blur-md sm:items-center sm:p-4"
         onClick={onClose}
       >
         <motion.div
@@ -100,7 +100,7 @@ export const ConnectDialog = ({ provider, onClose, onSuccess }) => {
           exit={{ opacity: 0, scale: 0.97, y: 12 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           onClick={(e) => e.stopPropagation()}
-          className="cp-glass w-full max-w-lg rounded-[var(--radius-xl)] p-8"
+          className="cp-glass max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-[var(--radius-xl)] p-5 sm:max-h-none sm:p-8"
         >
           <div className="flex items-start justify-between">
             <div>

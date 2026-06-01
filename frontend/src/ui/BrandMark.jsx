@@ -2,11 +2,10 @@ import { motion } from "framer-motion";
 
 const sizes = { sm: 32, md: 40, lg: 48 };
 
-export const BrandMark = ({ size = "md", showWordmark = true, className = "" }) => {
+export const BrandMark = ({ size = "md", showWordmark = true, showWordmarkOnMobile = true, className = "" }) => {
   const px = sizes[size] || sizes.md;
-
   return (
-    <motion.div className={`flex items-center gap-3 ${className}`} whileHover={{ opacity: 0.92 }}>
+    <motion.div className={`flex min-w-0 items-center gap-2 sm:gap-3 ${className}`} whileHover={{ opacity: 0.92 }}>
       <div
         className="relative flex shrink-0 items-center justify-center overflow-hidden rounded-[14px]"
         style={{
@@ -23,11 +22,11 @@ export const BrandMark = ({ size = "md", showWordmark = true, className = "" }) 
         </svg>
       </div>
       {showWordmark && (
-        <div className="leading-tight">
-          <span className="font-display text-lg font-bold tracking-tight text-[var(--text-primary)]">
+        <div className={`min-w-0 leading-tight ${showWordmarkOnMobile ? "" : "hidden sm:block"}`}>
+          <span className="font-display text-base font-bold tracking-tight text-[var(--text-primary)] sm:text-lg">
             CloudPulse
           </span>
-          <span className="font-display text-lg font-bold tracking-tight cp-gradient-text"> AI</span>
+          <span className="font-display text-base font-bold tracking-tight cp-gradient-text sm:text-lg"> AI</span>
         </div>
       )}
     </motion.div>

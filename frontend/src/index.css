@@ -131,6 +131,25 @@ body {
   max-width: 100%;
 }
 
+/* Responsive page shell — prevents horizontal overflow on mobile */
+.cp-page-shell {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.cp-scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+.cp-chart-panel {
+  min-width: 0;
+  width: 100%;
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
   letter-spacing: -0.02em;
