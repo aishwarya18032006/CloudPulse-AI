@@ -1,0 +1,20 @@
+# Optional: use only if Docker Desktop is installed
+# Run: docker compose up -d
+# Then: npm run db:migrate
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cloudpulse-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: cloudpulse
+    ports:
+      - "5432:5432"
+    volumes:
+      - cloudpulse_pg_data:/var/lib/postgresql/data
+
+volumes:
+  cloudpulse_pg_data:

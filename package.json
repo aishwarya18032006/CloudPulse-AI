@@ -1,0 +1,17 @@
+{
+  "name": "cloudpulse-ai",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix frontend\" \"npm run dev --prefix backend\"",
+    "dev:client": "npm run dev --prefix frontend",
+    "dev:server": "npm run dev --prefix backend",
+    "install:all": "npm install --prefix frontend && npm install --prefix backend",
+    "build": "npm run build --prefix frontend",
+    "db:migrate": "npm run db:migrate --prefix backend",
+    "db:test": "npm run db:test --prefix backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

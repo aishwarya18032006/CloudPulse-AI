@@ -1,0 +1,23 @@
+{
+  "name": "cloudpulse-backend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node server/index.js",
+    "db:migrate": "node database/migrate.js",
+    "db:upgrade-otp": "node database/upgrade-otp.js",
+    "db:test": "node database/test-connection.js",
+    "db:verify": "node database/verify-schema.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^7.0.3",
+    "pdfkit": "^0.17.1",
+    "pg": "^8.16.0"
+  }
+}

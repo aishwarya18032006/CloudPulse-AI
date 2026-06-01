@@ -1,0 +1,4 @@
+-- Use versioned migrations instead:
+--   npm run db:migrate
+--
+-- Files: server/db/migrations/*.sql
