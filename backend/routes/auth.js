@@ -16,8 +16,8 @@ const router = Router();
 const handleEmailError = (res, err) => {
   if (err instanceof EmailDeliveryError) {
     return res.status(503).json({
-      error: err.message,
-      code: "EMAIL_SEND_FAILED",
+      success: false,
+      message: "Unable to send OTP email",
     });
   }
   return null;

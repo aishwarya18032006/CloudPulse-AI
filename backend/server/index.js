@@ -7,7 +7,8 @@ import reportRoutes from "../routes/reports.js";
 import chatRoutes from "../routes/chat.js";
 import profileRoutes from "../routes/profile.js";
 import changePasswordRoutes from "../routes/changePassword.js";
-import { verifySmtpConnection, isSmtpConfigured } from "../services/email.js";
+import { isSmtpConfigured } from "../services/email.js";
+import pool from "../database/pool.js";
 import { runMigrations } from "../database/runMigrations.js";
 import { logSchemaValidation } from "../database/validateSchema.js";
 
@@ -47,8 +48,19 @@ app.use((err, _req, res, _next) => {
 });
 
 async function startServer() {
-  console.log(`[Server] Starting CloudPulse API (${NODE_ENV})…`);
+  console.log("[Server] Starting CloudPulse API");
   logEnvBootstrap();
+
+  try {
+    await pool.query("SELECT 1");
+    console.log("[Server] Connected to PostgreSQL");
+  } catch (err) {
+    console.error("[Server] PostgreSQL connection failed:", err.message);
+    if (NODE_ENV === "production") {
+      process.exit(1);
+    }
+    console.warn("[Server] Starting without a verified database connection (non-production only)");
+  }
 
   if (AUTO_MIGRATE) {
     try {
@@ -71,23 +83,12 @@ async function startServer() {
     console.warn("[Server] Starting anyway in non-production mode (registration may fail)");
   }
 
-  try {
-    const smtpStatus = await verifySmtpConnection();
-    if (smtpStatus.verified) {
-      console.log("[Server] Gmail SMTP ready for OTP delivery");
-    } else if (smtpStatus.devFallback) {
-      console.log("[Server] Development mode: OTP will log to console if SMTP unset");
-    }
-  } catch (err) {
-    console.error("[Server] SMTP startup check failed:", err.message);
-    if (NODE_ENV === "production") {
-      process.exit(1);
-    }
-    console.warn("[Server] Continuing without verified SMTP (non-production only)");
+  if (!isSmtpConfigured() && NODE_ENV !== "production") {
+    console.log("[Server] Development mode: OTP will log to console if SMTP unset");
   }
 
   app.listen(PORT, () => {
-    console.log(`CloudPulse API running on http://localhost:${PORT}`);
+    console.log(`CloudPulse API running on port ${PORT}`);
   });
 }
 

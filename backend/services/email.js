@@ -48,39 +48,6 @@ const getTransporter = () => {
   return transporter;
 };
 
-/**
- * Verify Gmail SMTP on server startup.
- */
-export const verifySmtpConnection = async () => {
-  if (!isSmtpConfigured()) {
-    if (isProduction) {
-      const msg = "Production requires SMTP_HOST, SMTP_USER, and SMTP_PASS in .env";
-      logSmtp("ERROR", msg);
-      throw new Error(msg);
-    }
-    logSmtp("WARN", "SMTP credentials not set — development mode will log OTP to console only");
-    return { verified: false, devFallback: true };
-  }
-
-  const transport = getTransporter();
-
-  try {
-    logSmtp("INFO", "Verifying SMTP connection (transporter.verify)…");
-    await transport.verify();
-    const { host, port } = getSmtpSettings();
-    logSmtp("INFO", "SMTP connection verified successfully", { host, port });
-    return { verified: true };
-  } catch (err) {
-    logSmtp("ERROR", "SMTP verification failed", {
-      message: err.message,
-      code: err.code,
-    });
-    throw new Error(
-      `SMTP connection failed: ${err.message}. Check Gmail App Password and .env settings.`
-    );
-  }
-};
-
 export class EmailDeliveryError extends Error {
   constructor(message, cause) {
     super(message);
