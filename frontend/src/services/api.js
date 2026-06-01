@@ -1,4 +1,33 @@
-const API_BASE = import.meta.env.VITE_API_URL || "/api";
+/**
+ * API base URL resolution:
+ * - Production (Vercel): set VITE_API_URL=https://cloudpulse-ai.onrender.com
+ * - Development: omit VITE_API_URL; Vite proxies /api -> localhost:3001
+ *
+ * All request paths are relative to /api (e.g. /auth/register -> /api/auth/register).
+ */
+
+const trimTrailingSlash = (value) => value.replace(/\/+$/, "");
+
+const resolveApiBase = () => {
+  const envUrl = import.meta.env.VITE_API_URL?.trim();
+  if (!envUrl) {
+    return "/api";
+  }
+
+  const normalized = trimTrailingSlash(envUrl);
+  if (normalized.endsWith("/api")) {
+    return normalized;
+  }
+
+  return `${normalized}/api`;
+};
+
+const API_BASE = resolveApiBase();
+
+const buildApiUrl = (path) => {
+  const suffix = path.startsWith("/") ? path : `/${path}`;
+  return `${API_BASE}${suffix}`;
+};
 
 const getToken = () => localStorage.getItem("cloudpulse_token");
 
@@ -12,7 +41,7 @@ export const api = {
     const token = getToken();
     if (token) headers.Authorization = `Bearer ${token}`;
 
-    const res = await fetch(`${API_BASE}${path}`, {
+    const res = await fetch(buildApiUrl(path), {
       ...options,
       headers,
     });
@@ -40,7 +69,7 @@ export const api = {
 
   reportHistory: () => api.request("/reports/history"),
 
-  reportDownloadUrl: (id) => `${API_BASE}/reports/${id}/download`,
+  reportDownloadUrl: (id) => buildApiUrl(`/reports/${id}/download`),
 
   deleteReport: (id) => api.request(`/reports/${id}`, { method: "DELETE" }),
 
@@ -51,6 +80,9 @@ export const api = {
   changePassword: (body) =>
     api.request("/change-password", { method: "PUT", body: JSON.stringify(body) }),
 };
+
+export const getApiBaseUrl = () => API_BASE;
+export const getApiUrl = buildApiUrl;
 
 export const setAuthToken = (token) => {
   if (token) localStorage.setItem("cloudpulse_token", token);

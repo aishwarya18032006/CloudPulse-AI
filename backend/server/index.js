@@ -2,6 +2,7 @@ import "../config/env.js";
 import { logEnvBootstrap } from "../config/env.js";
 import express from "express";
 import cors from "cors";
+import { corsOptions, logCorsBootstrap } from "../config/cors.js";
 import authRoutes from "../routes/auth.js";
 import reportRoutes from "../routes/reports.js";
 import chatRoutes from "../routes/chat.js";
@@ -17,12 +18,8 @@ const PORT = process.env.PORT || 3001;
 const NODE_ENV = process.env.NODE_ENV || "development";
 const AUTO_MIGRATE = process.env.AUTO_MIGRATE !== "false";
 
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
-    credentials: true,
-  })
-);
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(express.json());
 
 app.get("/api/health", async (_req, res) => {
@@ -50,6 +47,7 @@ app.use((err, _req, res, _next) => {
 async function startServer() {
   console.log("[Server] Starting CloudPulse API");
   logEnvBootstrap();
+  logCorsBootstrap();
 
   try {
     await pool.query("SELECT 1");
