@@ -36,6 +36,17 @@ export const AuthProvider = ({ children }) => {
       email,
       password,
     });
+    if (data.token && data.user) {
+      setAuthToken(data.token);
+      const userData = {
+        id: data.user.id,
+        email: data.user.email,
+        name: data.user.name,
+        verified: data.user.verified,
+      };
+      storage.setUser(userData);
+      setUser(userData);
+    }
     return data;
   }, []);
 
@@ -54,7 +65,19 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const resendOtp = useCallback(async (email) => {
-    return api.resendOtp({ email });
+    const data = await api.resendOtp({ email });
+    if (data.token && data.user) {
+      setAuthToken(data.token);
+      const userData = {
+        id: data.user.id,
+        email: data.user.email,
+        name: data.user.name,
+        verified: data.user.verified,
+      };
+      storage.setUser(userData);
+      setUser(userData);
+    }
+    return data;
   }, []);
 
   const login = useCallback(async (email, password) => {

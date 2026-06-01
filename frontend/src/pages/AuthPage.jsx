@@ -87,6 +87,10 @@ export const AuthPage = () => {
     setSubmitting(true);
     try {
       const data = await doRegister(register.name, register.email, register.password);
+      if (data.token) {
+        navigate("/workspace");
+        return;
+      }
       setPendingEmail(data.email);
       setRegisterStep("otp");
       setError("");
@@ -119,7 +123,11 @@ export const AuthPage = () => {
     setError("");
     setSubmitting(true);
     try {
-      await resendOtp(pendingEmail);
+      const data = await resendOtp(pendingEmail);
+      if (data.token) {
+        navigate("/workspace");
+        return;
+      }
       setError("");
     } catch (err) {
       setError(err.message || "Could not resend code.");
