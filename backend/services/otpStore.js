@@ -1,3 +1,5 @@
+// OTP disabled for hackathon deployment
+
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import pool from "../database/pool.js";

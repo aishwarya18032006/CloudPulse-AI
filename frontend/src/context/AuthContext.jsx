@@ -31,27 +31,15 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const register = useCallback(async (fullName, email, password) => {
-    const data = await api.register({
+    return api.register({
       fullName,
       email,
       password,
     });
-    if (data.token && data.user) {
-      setAuthToken(data.token);
-      const userData = {
-        id: data.user.id,
-        email: data.user.email,
-        name: data.user.name,
-        verified: data.user.verified,
-      };
-      storage.setUser(userData);
-      setUser(userData);
-    }
-    return data;
   }, []);
 
-  const verifyOtp = useCallback(async (email, otp) => {
-    const data = await api.verifyOtp({ email, otp });
+  const login = useCallback(async (email, password) => {
+    const data = await api.login({ email, password });
     setAuthToken(data.token);
     const userData = {
       id: data.user.id,
@@ -61,44 +49,7 @@ export const AuthProvider = ({ children }) => {
     };
     storage.setUser(userData);
     setUser(userData);
-    return data;
-  }, []);
-
-  const resendOtp = useCallback(async (email) => {
-    const data = await api.resendOtp({ email });
-    if (data.token && data.user) {
-      setAuthToken(data.token);
-      const userData = {
-        id: data.user.id,
-        email: data.user.email,
-        name: data.user.name,
-        verified: data.user.verified,
-      };
-      storage.setUser(userData);
-      setUser(userData);
-    }
-    return data;
-  }, []);
-
-  const login = useCallback(async (email, password) => {
-    try {
-      const data = await api.login({ email, password });
-      setAuthToken(data.token);
-      const userData = {
-        id: data.user.id,
-        email: data.user.email,
-        name: data.user.name,
-        verified: data.user.verified,
-      };
-      storage.setUser(userData);
-      setUser(userData);
-      return { success: true };
-    } catch (err) {
-      if (err.data?.requiresOtp) {
-        return { requiresOtp: true, email: err.data.email, error: err.message };
-      }
-      throw err;
-    }
+    return { success: true };
   }, []);
 
   const logout = useCallback(() => {
@@ -118,8 +69,6 @@ export const AuthProvider = ({ children }) => {
         loading,
         login,
         register,
-        verifyOtp,
-        resendOtp,
         logout,
       }}
     >

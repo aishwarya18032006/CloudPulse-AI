@@ -32,14 +32,12 @@ export const AuthPage = () => {
   const [params] = useSearchParams();
   const initialTab = params.get("tab") === "register" ? "register" : "login";
   const [tab, setTab] = useState(initialTab);
-  const [registerStep, setRegisterStep] = useState("form");
-  const [pendingEmail, setPendingEmail] = useState("");
-  const [otp, setOtp] = useState("");
   const [login, setLogin] = useState({ email: "", password: "", remember: true });
   const [register, setRegister] = useState({ name: "", email: "", password: "", confirm: "" });
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const { login: doLogin, register: doRegister, verifyOtp, resendOtp } = useAuth();
+  const { login: doLogin, register: doRegister } = useAuth();
   const navigate = useNavigate();
   const { isEnvironmentReady } = useCloud();
 
@@ -51,21 +49,15 @@ export const AuthPage = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccessMessage("");
     if (!login.email || !login.password) {
       setError("Enter your email and password.");
       return;
     }
     setSubmitting(true);
     try {
-      const result = await doLogin(login.email, login.password);
-      if (result?.requiresOtp) {
-        setPendingEmail(result.email);
-        setRegisterStep("otp");
-        setTab("register");
-        setError(result.error || "");
-      } else {
-        goNext();
-      }
+      await doLogin(login.email, login.password);
+      goNext();
     } catch (err) {
       setError(err.message || "Login failed.");
     } finally {
@@ -76,6 +68,7 @@ export const AuthPage = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccessMessage("");
     if (!register.name || !register.email || !register.password) {
       setError("All fields are required.");
       return;
@@ -87,56 +80,16 @@ export const AuthPage = () => {
     setSubmitting(true);
     try {
       const data = await doRegister(register.name, register.email, register.password);
-      if (data.token) {
-        navigate("/workspace");
-        return;
-      }
-      setPendingEmail(data.email);
-      setRegisterStep("otp");
-      setError("");
+      setLogin((prev) => ({ ...prev, email: register.email }));
+      setRegister({ name: "", email: "", password: "", confirm: "" });
+      setTab("login");
+      setSuccessMessage(data.message || "Account created successfully. Please sign in.");
     } catch (err) {
       setError(err.message || "Registration failed.");
     } finally {
       setSubmitting(false);
     }
   };
-
-  const handleVerifyOtp = async (e) => {
-    e.preventDefault();
-    setError("");
-    if (!otp || otp.length !== 6) {
-      setError("Enter the 6-digit verification code.");
-      return;
-    }
-    setSubmitting(true);
-    try {
-      await verifyOtp(pendingEmail, otp);
-      navigate("/workspace");
-    } catch (err) {
-      setError(err.message || "Invalid verification code.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleResendOtp = async () => {
-    setError("");
-    setSubmitting(true);
-    try {
-      const data = await resendOtp(pendingEmail);
-      if (data.token) {
-        navigate("/workspace");
-        return;
-      }
-      setError("");
-    } catch (err) {
-      setError(err.message || "Could not resend code.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const showOtp = registerStep === "otp";
 
   return (
     <div className="relative min-h-screen">
@@ -202,23 +155,144 @@ export const AuthPage = () => {
               <BrandMark />
             </div>
 
-            {showOtp ? (
-              <>
-                <h2 className="font-display text-2xl font-bold text-[var(--text-primary)]">Verify your email</h2>
-                <p className="mt-2 text-sm text-[var(--text-secondary)]">
-                  Enter the 6-digit code sent to <strong className="text-[var(--text-primary)]">{pendingEmail}</strong>.
-                  Check your inbox and spam folder. Code expires in 5 minutes.
-                </p>
-                {error && (
-                  <p className="mt-4 rounded-lg bg-[var(--danger-soft)] px-3 py-2 text-sm text-[var(--danger)]">{error}</p>
-                )}
-                <form onSubmit={handleVerifyOtp} autoComplete="off" className="mt-6 space-y-4">
+            <h2 className="font-display text-2xl font-bold text-[var(--text-primary)]">
+              {tab === "login" ? "Welcome back" : "Create your workspace"}
+            </h2>
+            <p className="mt-2 text-sm text-[var(--text-secondary)]">
+              {tab === "login"
+                ? "Sign in to access your cloud intelligence dashboard."
+                : "Start optimizing cloud costs in minutes."}
+            </p>
+
+            <div className="mt-8 flex rounded-xl bg-[var(--bg-subtle)] p-1">
+              {["login", "register"].map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => {
+                    setTab(t);
+                    setError("");
+                    setSuccessMessage("");
+                  }}
+                  className={`relative flex-1 rounded-lg py-2.5 text-sm font-semibold transition-colors ${
+                    tab === t ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)]"
+                  }`}
+                >
+                  {tab === t && (
+                    <motion.div
+                      layoutId="authTab"
+                      className="absolute inset-0 rounded-lg bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)]"
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                  <span className="relative z-10">{t === "login" ? "Sign in" : "Register"}</span>
+                </button>
+              ))}
+            </div>
+
+            {successMessage && tab === "login" && (
+              <p className="mt-4 rounded-lg bg-[var(--success-soft)] px-3 py-2 text-sm text-[var(--success)]">
+                {successMessage}
+              </p>
+            )}
+
+            {error && (
+              <p className="mt-4 rounded-lg bg-[var(--danger-soft)] px-3 py-2 text-sm text-[var(--danger)]">{error}</p>
+            )}
+
+            <AnimatePresence mode="wait">
+              {tab === "login" ? (
+                <motion.form
+                  key="login"
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 8 }}
+                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                  onSubmit={handleLogin}
+                  autoComplete="off"
+                  className="mt-6 space-y-4"
+                >
                   <PremiumInput
-                    name="otp-code"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                    placeholder="Enter 6-digit code"
-                    autoComplete="one-time-code"
+                    type="email"
+                    name="cp-login-email"
+                    value={login.email}
+                    onChange={(e) => setLogin({ ...login, email: e.target.value })}
+                    placeholder="Enter your email"
+                    autoComplete="off"
+                    required
+                  />
+                  <PremiumInput
+                    type="password"
+                    name="cp-login-password"
+                    value={login.password}
+                    onChange={(e) => setLogin({ ...login, password: e.target.value })}
+                    placeholder="Enter your password"
+                    autoComplete="new-password"
+                    required
+                  />
+                  <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+                    <input
+                      type="checkbox"
+                      checked={login.remember}
+                      onChange={(e) => setLogin({ ...login, remember: e.target.checked })}
+                      className="rounded border-[var(--border)] accent-[var(--accent)]"
+                    />
+                    Remember this device
+                  </label>
+                  <motion.button
+                    type="submit"
+                    disabled={submitting}
+                    whileHover={{ scale: submitting ? 1 : 1.01 }}
+                    whileTap={{ scale: submitting ? 1 : 0.99 }}
+                    className="cp-btn-primary w-full py-3.5"
+                  >
+                    {submitting ? "Signing in…" : <>Sign in <HiOutlineArrowRight /></>}
+                  </motion.button>
+                </motion.form>
+              ) : (
+                <motion.form
+                  key="register"
+                  initial={{ opacity: 0, x: 8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 8 }}
+                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                  onSubmit={handleRegister}
+                  autoComplete="off"
+                  className="mt-6 space-y-4"
+                >
+                  <PremiumInput
+                    name="cp-register-name"
+                    value={register.name}
+                    onChange={(e) => setRegister({ ...register, name: e.target.value })}
+                    placeholder="Enter your full name"
+                    autoComplete="off"
+                    required
+                  />
+                  <PremiumInput
+                    type="email"
+                    name="cp-register-email"
+                    value={register.email}
+                    onChange={(e) => setRegister({ ...register, email: e.target.value })}
+                    placeholder="Enter your email"
+                    autoComplete="off"
+                    required
+                  />
+                  <PremiumInput
+                    type="password"
+                    name="cp-register-password"
+                    value={register.password}
+                    onChange={(e) => setRegister({ ...register, password: e.target.value })}
+                    placeholder="Enter your password"
+                    autoComplete="new-password"
+                    required
+                  />
+                  <PremiumInput
+                    type="password"
+                    name="cp-register-confirm"
+                    value={register.confirm}
+                    onChange={(e) => setRegister({ ...register, confirm: e.target.value })}
+                    placeholder="Confirm your password"
+                    autoComplete="new-password"
                     required
                   />
                   <motion.button
@@ -228,164 +302,11 @@ export const AuthPage = () => {
                     whileTap={{ scale: submitting ? 1 : 0.99 }}
                     className="cp-btn-primary w-full py-3.5"
                   >
-                    {submitting ? "Verifying…" : <>Verify email <HiOutlineArrowRight /></>}
+                    {submitting ? "Creating account…" : <>Create account <HiOutlineArrowRight /></>}
                   </motion.button>
-                  <button
-                    type="button"
-                    disabled={submitting}
-                    onClick={handleResendOtp}
-                    className="w-full text-center text-sm text-[var(--accent)] hover:underline"
-                  >
-                    Resend code
-                  </button>
-                </form>
-              </>
-            ) : (
-              <>
-                <h2 className="font-display text-2xl font-bold text-[var(--text-primary)]">
-                  {tab === "login" ? "Welcome back" : "Create your workspace"}
-                </h2>
-                <p className="mt-2 text-sm text-[var(--text-secondary)]">
-                  {tab === "login"
-                    ? "Sign in to access your cloud intelligence dashboard."
-                    : "Start optimizing cloud costs in minutes."}
-                </p>
-
-                <div className="mt-8 flex rounded-xl bg-[var(--bg-subtle)] p-1">
-                  {["login", "register"].map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => { setTab(t); setError(""); setRegisterStep("form"); }}
-                      className={`relative flex-1 rounded-lg py-2.5 text-sm font-semibold transition-colors ${
-                        tab === t ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)]"
-                      }`}
-                    >
-                      {tab === t && (
-                        <motion.div
-                          layoutId="authTab"
-                          className="absolute inset-0 rounded-lg bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)]"
-                          transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                        />
-                      )}
-                      <span className="relative z-10">{t === "login" ? "Sign in" : "Register"}</span>
-                    </button>
-                  ))}
-                </div>
-
-                {error && (
-                  <p className="mt-4 rounded-lg bg-[var(--danger-soft)] px-3 py-2 text-sm text-[var(--danger)]">{error}</p>
-                )}
-
-                <AnimatePresence mode="wait">
-                  {tab === "login" ? (
-                    <motion.form
-                      key="login"
-                      initial={{ opacity: 0, x: -8 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 8 }}
-                      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                      onSubmit={handleLogin}
-                      autoComplete="off"
-                      className="mt-6 space-y-4"
-                    >
-                      <PremiumInput
-                        type="email"
-                        name="cp-login-email"
-                        value={login.email}
-                        onChange={(e) => setLogin({ ...login, email: e.target.value })}
-                        placeholder="Enter your email"
-                        autoComplete="off"
-                        required
-                      />
-                      <PremiumInput
-                        type="password"
-                        name="cp-login-password"
-                        value={login.password}
-                        onChange={(e) => setLogin({ ...login, password: e.target.value })}
-                        placeholder="Enter your password"
-                        autoComplete="new-password"
-                        required
-                      />
-                      <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-                        <input
-                          type="checkbox"
-                          checked={login.remember}
-                          onChange={(e) => setLogin({ ...login, remember: e.target.checked })}
-                          className="rounded border-[var(--border)] accent-[var(--accent)]"
-                        />
-                        Remember this device
-                      </label>
-                      <motion.button
-                        type="submit"
-                        disabled={submitting}
-                        whileHover={{ scale: submitting ? 1 : 1.01 }}
-                        whileTap={{ scale: submitting ? 1 : 0.99 }}
-                        className="cp-btn-primary w-full py-3.5"
-                      >
-                        {submitting ? "Signing in…" : <>Sign in <HiOutlineArrowRight /></>}
-                      </motion.button>
-                    </motion.form>
-                  ) : (
-                    <motion.form
-                      key="register"
-                      initial={{ opacity: 0, x: 8 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 8 }}
-                      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                      onSubmit={handleRegister}
-                      autoComplete="off"
-                      className="mt-6 space-y-4"
-                    >
-                      <PremiumInput
-                        name="cp-register-name"
-                        value={register.name}
-                        onChange={(e) => setRegister({ ...register, name: e.target.value })}
-                        placeholder="Enter your full name"
-                        autoComplete="off"
-                        required
-                      />
-                      <PremiumInput
-                        type="email"
-                        name="cp-register-email"
-                        value={register.email}
-                        onChange={(e) => setRegister({ ...register, email: e.target.value })}
-                        placeholder="Enter your email"
-                        autoComplete="off"
-                        required
-                      />
-                      <PremiumInput
-                        type="password"
-                        name="cp-register-password"
-                        value={register.password}
-                        onChange={(e) => setRegister({ ...register, password: e.target.value })}
-                        placeholder="Enter your password"
-                        autoComplete="new-password"
-                        required
-                      />
-                      <PremiumInput
-                        type="password"
-                        name="cp-register-confirm"
-                        value={register.confirm}
-                        onChange={(e) => setRegister({ ...register, confirm: e.target.value })}
-                        placeholder="Confirm your password"
-                        autoComplete="new-password"
-                        required
-                      />
-                      <motion.button
-                        type="submit"
-                        disabled={submitting}
-                        whileHover={{ scale: submitting ? 1 : 1.01 }}
-                        whileTap={{ scale: submitting ? 1 : 0.99 }}
-                        className="cp-btn-primary w-full py-3.5"
-                      >
-                        {submitting ? "Sending code…" : <>Create account <HiOutlineArrowRight /></>}
-                      </motion.button>
-                    </motion.form>
-                  )}
-                </AnimatePresence>
-              </>
-            )}
+                </motion.form>
+              )}
+            </AnimatePresence>
 
             <p className="mt-8 flex items-center justify-center gap-2 text-xs text-[var(--text-tertiary)]">
               <HiOutlineShieldCheck className="h-4 w-4" />

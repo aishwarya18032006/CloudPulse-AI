@@ -59,8 +59,7 @@ export const api = {
   },
 
   register: (body) => api.request("/auth/register", { method: "POST", body: JSON.stringify(body) }),
-  verifyOtp: (body) => api.request("/auth/verify-otp", { method: "POST", body: JSON.stringify(body) }),
-  resendOtp: (body) => api.request("/auth/resend-otp", { method: "POST", body: JSON.stringify(body) }),
+  // OTP disabled for hackathon deployment — verifyOtp / resendOtp retained in backend only
   login: (body) => api.request("/auth/login", { method: "POST", body: JSON.stringify(body) }),
   me: () => api.request("/auth/me"),
 

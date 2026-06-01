@@ -1,88 +1,16 @@
+// OTP disabled for hackathon deployment
+
 import { Router } from "express";
 import bcrypt from "bcryptjs";
 import pool from "../database/pool.js";
-import { sendOtpEmail, EmailDeliveryError } from "../services/email.js";
-import {
-  generateOtp,
-  storeOtpForUser,
-  verifyOtpForUser,
-  clearOtpForUser,
-} from "../services/otpStore.js";
 import { signToken, requireAuth } from "../middleware/auth.js";
 import { seedDefaultSubscriptions } from "../services/alerts/index.js";
 
 const router = Router();
 
-const isProduction = process.env.NODE_ENV === "production";
-
-const PRODUCTION_OTP_SKIP_LOG =
-  "Production fallback: OTP verification skipped due to SMTP delivery failure.";
-
-const handleEmailError = (res, err) => {
-  if (err instanceof EmailDeliveryError) {
-    return res.status(503).json({
-      success: false,
-      message: "Unable to send OTP email",
-    });
-  }
-  return null;
-};
-
-const markUserVerified = async (userId) => {
+const activateUser = async (userId) => {
   await pool.query(`UPDATE users SET verified = true, otp_verified = true WHERE id = $1`, [userId]);
-  await clearOtpForUser(userId);
 };
-
-const buildAuthPayload = (user) => {
-  const token = signToken({ ...user, verified: true, otp_verified: true });
-  return {
-    token,
-    user: {
-      id: user.id,
-      name: user.full_name,
-      email: user.email,
-      verified: true,
-    },
-  };
-};
-
-const applyProductionOtpFallback = async (user) => {
-  console.log(PRODUCTION_OTP_SKIP_LOG);
-  await markUserVerified(user.id);
-  return buildAuthPayload(user);
-};
-
-/**
- * Generate OTP, store bcrypt hash, send email to registrant.
- * Called only after user row exists in database.
- */
-const createAndSendOtp = async (userId, email, fullName) => {
-  const code = generateOtp();
-  await storeOtpForUser(userId, code);
-  await sendOtpEmail(email, code, fullName || "User");
-};
-
-/**
- * Attempt OTP delivery. In production, SMTP failures auto-verify the account.
- */
-const deliverOtpOrProductionFallback = async (user, email, fullName) => {
-  try {
-    await createAndSendOtp(user.id, email, fullName);
-    return { requiresOtp: true };
-  } catch (err) {
-    if (err instanceof EmailDeliveryError && isProduction) {
-      const auth = await applyProductionOtpFallback(user);
-      return { requiresOtp: false, ...auth };
-    }
-    throw err;
-  }
-};
-
-const otpPendingResponse = (email, message) => ({
-  message,
-  email,
-  requiresOtp: true,
-});
 
 router.post("/register", async (req, res) => {
   try {
@@ -109,31 +37,17 @@ router.post("/register", async (req, res) => {
           error: "An account with this email already exists. Please sign in.",
         });
       }
-      try {
-        const outcome = await deliverOtpOrProductionFallback(user, normalizedEmail, user.full_name);
-        if (outcome.requiresOtp) {
-          return res.json(
-            otpPendingResponse(normalizedEmail, "Verification code sent to your email.")
-          );
-        }
-        return res.json({
-          message: "Account created successfully.",
-          email: normalizedEmail,
-          requiresOtp: false,
-          token: outcome.token,
-          user: outcome.user,
-        });
-      } catch (err) {
-        const handled = handleEmailError(res, err);
-        if (handled) return handled;
-        throw err;
-      }
+      await activateUser(user.id);
+      return res.json({
+        message: "Account ready. Please sign in.",
+        email: normalizedEmail,
+      });
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
     const result = await pool.query(
       `INSERT INTO users (full_name, email, password_hash, verified, otp_verified)
-       VALUES ($1, $2, $3, false, false)
+       VALUES ($1, $2, $3, true, true)
        RETURNING id, full_name, email`,
       [fullName.trim(), normalizedEmail, passwordHash]
     );
@@ -141,28 +55,10 @@ router.post("/register", async (req, res) => {
     const user = result.rows[0];
     await seedDefaultSubscriptions(user.id);
 
-    try {
-      const outcome = await deliverOtpOrProductionFallback(user, normalizedEmail, user.full_name);
-      if (outcome.requiresOtp) {
-        return res.status(201).json(
-          otpPendingResponse(
-            normalizedEmail,
-            "Account created. Verification code sent to your email."
-          )
-        );
-      }
-      return res.status(201).json({
-        message: "Account created successfully.",
-        email: normalizedEmail,
-        requiresOtp: false,
-        token: outcome.token,
-        user: outcome.user,
-      });
-    } catch (err) {
-      const handled = handleEmailError(res, err);
-      if (handled) return handled;
-      throw err;
-    }
+    res.status(201).json({
+      message: "Account created successfully. Please sign in.",
+      email: normalizedEmail,
+    });
   } catch (err) {
     console.error("Register error:", err);
     if (err.code === "SCHEMA_MISMATCH" || err.code === "42703") {
@@ -174,86 +70,14 @@ router.post("/register", async (req, res) => {
   }
 });
 
-router.post("/verify-otp", async (req, res) => {
-  try {
-    const { email, otp } = req.body;
-    if (!email || !otp) {
-      return res.status(400).json({ error: "Email and OTP are required." });
-    }
-
-    const normalizedEmail = email.trim().toLowerCase();
-    const userResult = await pool.query("SELECT * FROM users WHERE email = $1", [normalizedEmail]);
-
-    if (userResult.rows.length === 0) {
-      return res.status(404).json({ error: "No account found. Please register first." });
-    }
-
-    const user = userResult.rows[0];
-    const check = await verifyOtpForUser(user.id, String(otp).trim());
-
-    if (!check.valid) {
-      const msg =
-        check.reason === "expired_or_missing"
-          ? "Verification code has expired. Request a new code."
-          : "Invalid verification code. Please try again.";
-      return res.status(400).json({ error: msg });
-    }
-
-    await markUserVerified(user.id);
-
-    const token = signToken(user);
-    res.json({
-      message: "Email verified successfully.",
-      token,
-      user: {
-        id: user.id,
-        name: user.full_name,
-        email: user.email,
-        verified: true,
-      },
-    });
-  } catch (err) {
-    console.error("Verify OTP error:", err);
-    res.status(500).json({ error: "Verification failed." });
-  }
+// OTP disabled for hackathon deployment
+router.post("/verify-otp", (_req, res) => {
+  res.status(410).json({ error: "OTP verification is disabled." });
 });
 
-router.post("/resend-otp", async (req, res) => {
-  try {
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ error: "Email is required." });
-
-    const normalizedEmail = email.trim().toLowerCase();
-    const userResult = await pool.query(
-      "SELECT id, full_name FROM users WHERE email = $1",
-      [normalizedEmail]
-    );
-
-    if (userResult.rows.length === 0) {
-      return res.status(404).json({ error: "No account found. Please register first." });
-    }
-
-    const user = userResult.rows[0];
-    try {
-      const outcome = await deliverOtpOrProductionFallback(user, normalizedEmail, user.full_name);
-      if (outcome.requiresOtp) {
-        return res.json({ message: "Verification code sent to your email." });
-      }
-      return res.json({
-        message: "Account verified successfully.",
-        requiresOtp: false,
-        token: outcome.token,
-        user: outcome.user,
-      });
-    } catch (err) {
-      const handled = handleEmailError(res, err);
-      if (handled) return handled;
-      throw err;
-    }
-  } catch (err) {
-    console.error("Resend OTP error:", err);
-    res.status(500).json({ error: "Could not resend code." });
-  }
+// OTP disabled for hackathon deployment
+router.post("/resend-otp", (_req, res) => {
+  res.status(410).json({ error: "OTP verification is disabled." });
 });
 
 router.post("/login", async (req, res) => {
@@ -279,34 +103,17 @@ router.post("/login", async (req, res) => {
     }
 
     if (!user.verified || !user.otp_verified) {
-      try {
-        const outcome = await deliverOtpOrProductionFallback(user, normalizedEmail, user.full_name);
-        if (outcome.requiresOtp) {
-          return res.status(403).json({
-            error: "Please verify your email with the code sent to your inbox.",
-            requiresOtp: true,
-            email: normalizedEmail,
-          });
-        }
-        return res.json({
-          token: outcome.token,
-          user: outcome.user,
-        });
-      } catch (err) {
-        const handled = handleEmailError(res, err);
-        if (handled) return handled;
-        throw err;
-      }
+      await activateUser(user.id);
     }
 
-    const token = signToken(user);
+    const token = signToken({ ...user, verified: true, otp_verified: true });
     res.json({
       token,
       user: {
         id: user.id,
         name: user.full_name,
         email: user.email,
-        verified: user.verified,
+        verified: true,
       },
     });
   } catch (err) {
@@ -330,7 +137,7 @@ router.get("/me", requireAuth, async (req, res) => {
         id: u.id,
         name: u.full_name,
         email: u.email,
-        verified: u.verified && u.otp_verified,
+        verified: true,
       },
     });
   } catch (err) {

@@ -4,6 +4,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { CloudProvider } from "./context/CloudContext";
 import { ToastProvider } from "./context/ToastContext";
 import { AppRoutes } from "./routes/AppRoutes";
+import { ScrollToTop } from "./ui/ScrollToTop";
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <AuthProvider>
           <CloudProvider>
             <BrowserRouter>
+              <ScrollToTop />
               <AppRoutes />
             </BrowserRouter>
           </CloudProvider>

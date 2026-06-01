@@ -1,3 +1,5 @@
+// OTP disabled for hackathon deployment
+
 import nodemailer from "nodemailer";
 import { getSmtpSettings, isSmtpConfigured } from "../config/env.js";
 import { OTP_EMAIL_SUBJECT, buildOtpEmailHtml, buildOtpEmailText } from "./emailTemplates.js";
