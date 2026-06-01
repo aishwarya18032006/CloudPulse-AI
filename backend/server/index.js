@@ -19,7 +19,6 @@ const NODE_ENV = process.env.NODE_ENV || "development";
 const AUTO_MIGRATE = process.env.AUTO_MIGRATE !== "false";
 
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
 app.use(express.json());
 
 app.get("/api/health", async (_req, res) => {
