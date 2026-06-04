@@ -46,6 +46,22 @@ export const AuthProvider = ({ children }) => {
       email: data.user.email,
       name: data.user.name,
       verified: data.user.verified,
+      picture: data.user.picture,
+    };
+    storage.setUser(userData);
+    setUser(userData);
+    return { success: true };
+  }, []);
+
+  const googleLogin = useCallback(async (token, name, email, picture) => {
+    const data = await api.googleLogin({ token, name, email, picture });
+    setAuthToken(data.token);
+    const userData = {
+      id: data.user.id,
+      email: data.user.email,
+      name: data.user.name,
+      verified: data.user.verified,
+      picture: data.user.picture,
     };
     storage.setUser(userData);
     setUser(userData);
@@ -68,6 +84,7 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: !!user && !!getAuthToken(),
         loading,
         login,
+        googleLogin,
         register,
         logout,
       }}

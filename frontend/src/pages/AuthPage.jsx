@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { HiOutlineArrowRight, HiOutlineShieldCheck } from "react-icons/hi2";
-import { FaGoogle, FaMicrosoft } from "react-icons/fa6";
+import { FaGoogle } from "react-icons/fa6";
 import { PremiumCanvas } from "../ui/PremiumCanvas";
 import { BrandMark } from "../ui/BrandMark";
 import { ThemeSwitch } from "../ui/ThemeSwitch";
@@ -38,22 +38,79 @@ export const AuthPage = () => {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [oauthNotice, setOauthNotice] = useState("");
-  const { login: doLogin, register: doRegister } = useAuth();
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const { login: doLogin, register: doRegister, googleLogin: doGoogleLogin } = useAuth();
   const navigate = useNavigate();
   const { isEnvironmentReady } = useCloud();
+
+  // Initialize Google Sign-In
+  useEffect(() => {
+    if (window.google?.accounts?.id) {
+      window.google.accounts.id.initialize({
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+        callback: handleGoogleResponse,
+      });
+    }
+  }, []);
 
   const goNext = () => {
     if (isEnvironmentReady) navigate("/dashboard");
     else navigate("/workspace");
   };
 
-  const handleSocialSignIn = (provider) => {
+  const handleGoogleResponse = async (response) => {
+    if (!response.credential) {
+      setError("Failed to retrieve Google credentials. Please try again.");
+      return;
+    }
+
     setError("");
     setSuccessMessage("");
-    setOauthNotice(
-      provider === "google" ? "Google Sign-In coming soon" : "Microsoft Sign-In coming soon"
-    );
+    setGoogleLoading(true);
+
+    try {
+      // Decode the JWT token from Google (without verification on client side - backend will handle)
+      const base64Url = response.credential.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join("")
+      );
+      const userData = JSON.parse(jsonPayload);
+
+      // Call backend to login/register with Google
+      await doGoogleLogin(
+        response.credential,
+        userData.name,
+        userData.email,
+        userData.picture
+      );
+      goNext();
+    } catch (err) {
+      console.error("Google login error:", err);
+      setError(err.message || "Google login failed. Please try again.");
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = () => {
+    if (window.google?.accounts?.id) {
+      window.google.accounts.id.prompt((notification) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          // Prompt wasn't displayed, fallback to click-based flow
+          window.google.accounts.id.renderButton(
+            document.getElementById("google-signin-button"),
+            { theme: "outline", size: "large", width: "100%" }
+          );
+          document.getElementById("google-signin-button").click();
+        }
+      });
+    } else {
+      setError("Google Sign-In is not available. Please check your connection.");
+    }
   };
 
   const handleLogin = async (e) => {
@@ -327,33 +384,19 @@ export const AuthPage = () => {
               <div className="h-px flex-1 bg-[var(--border)]" />
             </div>
 
-            {oauthNotice && (
-              <p className="mb-4 rounded-lg bg-[var(--accent-soft)] px-3 py-2 text-center text-sm font-medium text-[var(--accent)]">
-                {oauthNotice}
-              </p>
-            )}
-
             <div className="grid gap-3">
               <motion.button
                 type="button"
-                onClick={() => handleSocialSignIn("google")}
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
+                onClick={handleGoogleSignIn}
+                disabled={googleLoading}
+                whileHover={{ scale: !googleLoading ? 1.01 : 1 }}
+                whileTap={{ scale: !googleLoading ? 0.99 : 1 }}
                 className="cp-btn-ghost w-full justify-center gap-3 border-[var(--border)] py-3"
               >
                 <FaGoogle className="h-5 w-5 text-[#4285F4]" />
-                Continue with Google
+                {googleLoading ? "Signing in…" : "Continue with Google"}
               </motion.button>
-              <motion.button
-                type="button"
-                onClick={() => handleSocialSignIn("microsoft")}
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-                className="cp-btn-ghost w-full justify-center gap-3 border-[var(--border)] py-3"
-              >
-                <FaMicrosoft className="h-5 w-5 text-[#0078D4]" />
-                Continue with Microsoft
-              </motion.button>
+              <div id="google-signin-button" style={{ display: "none" }} />
             </div>
 
             <p className="mt-8 flex items-center justify-center gap-2 text-xs text-[var(--text-tertiary)]">
