@@ -31,8 +31,7 @@ export const WorkspacePage = () => {
 
   const select = (id) => {
     if (id === "demo") {
-      setProvider("demo");
-      navigate("/dashboard");
+      navigate("/simulator");
     } else setConnect(id);
   };
 

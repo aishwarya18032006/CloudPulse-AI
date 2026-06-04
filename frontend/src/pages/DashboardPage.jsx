@@ -1,4 +1,6 @@
+import { useNavigate } from "react-router-dom";
 import {
+  HiOutlineArrowLeft,
   HiOutlineBanknotes,
   HiOutlineChartBar,
   HiOutlineBolt,
@@ -14,10 +16,22 @@ import { RegionAdvisor } from "../features/dashboard/RegionAdvisor";
 import { useCloud } from "../context/CloudContext";
 
 export const DashboardPage = () => {
-  const { metrics } = useCloud();
+  const navigate = useNavigate();
+  const { metrics, provider } = useCloud();
+  const showSimulatorBack = provider === "demo" && metrics?.fromSimulator;
 
   return (
     <div className="min-w-0">
+      {showSimulatorBack && (
+        <button
+          type="button"
+          onClick={() => navigate("/simulator")}
+          className="cp-btn-ghost mb-4 gap-2 text-sm font-semibold"
+        >
+          <HiOutlineArrowLeft className="h-4 w-4" />
+          Back to Simulator
+        </button>
+      )}
       <DashboardHero metrics={metrics} />
 
       <div className="mb-10 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">

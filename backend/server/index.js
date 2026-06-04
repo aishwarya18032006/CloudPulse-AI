@@ -8,6 +8,8 @@ import reportRoutes from "../routes/reports.js";
 import chatRoutes from "../routes/chat.js";
 import profileRoutes from "../routes/profile.js";
 import changePasswordRoutes from "../routes/changePassword.js";
+import mlPredictRoutes from "../routes/mlpredict.js";
+import simulatorRoutes from "../routes/simulator.js";
 import { isSmtpConfigured } from "../services/email.js";
 import pool from "../database/pool.js";
 import { runMigrations } from "../database/runMigrations.js";
@@ -33,11 +35,47 @@ app.get("/api/health", async (_req, res) => {
   });
 });
 
+app.post("/api/ml/predict", async (req, res) => {
+  const ML_MODEL_URL = process.env.ML_MODEL_URL || "http://localhost:8000";
+  try {
+    const { data } = req.body;
+    if (!data) {
+      return res.status(400).json({ error: "Missing 'data' field in request body" });
+    }
+
+    const response = await fetch(`${ML_MODEL_URL}/predict`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error(`ML server responded with status ${response.status}`);
+    }
+
+    const prediction = await response.json();
+    res.json(prediction);
+  } catch (err) {
+    console.error("[ML Predict] Error:", err.message);
+    res.status(500).json({ error: "Failed to get prediction from ML model" });
+  }
+});
+
+app.get("/api/test-get", (req, res) => {
+  res.json({ test: "get works" });
+});
+
+app.post("/api/test-post", (req, res) => {
+  res.json({ test: "post works" });
+});
+
 app.use("/api/auth", authRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/change-password", changePasswordRoutes);
+app.use("/api/predict", mlPredictRoutes);
+app.use("/api/simulator", simulatorRoutes);
 app.use((err, _req, res, _next) => {
   console.error(err);
   res.status(500).json({ error: "Internal server error." });

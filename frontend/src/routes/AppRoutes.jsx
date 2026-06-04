@@ -7,6 +7,7 @@ import { DashboardPage } from "../pages/DashboardPage";
 import { AnalyticsPage } from "../pages/AnalyticsPage";
 import { ReportsPage } from "../pages/ReportsPage";
 import { SettingsPage } from "../pages/SettingsPage";
+import { CloudInfrastructureSimulatorPage } from "../pages/CloudInfrastructureSimulatorPage";
 import { RouteTransition } from "../ui/RouteTransition";
 import { useAuth } from "../context/AuthContext";
 import { getAuthToken } from "../services/api";
@@ -72,6 +73,17 @@ export const AppRoutes = () => {
             <Protected>
               <RouteTransition className="min-h-screen">
                 <WorkspacePage />
+              </RouteTransition>
+            </Protected>
+          }
+        />
+
+        <Route
+          path="/simulator"
+          element={
+            <Protected>
+              <RouteTransition className="min-h-screen">
+                <CloudInfrastructureSimulatorPage />
               </RouteTransition>
             </Protected>
           }

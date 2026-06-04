@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { HiOutlineArrowRight, HiOutlineShieldCheck } from "react-icons/hi2";
+import { FaGoogle, FaMicrosoft } from "react-icons/fa6";
 import { PremiumCanvas } from "../ui/PremiumCanvas";
 import { BrandMark } from "../ui/BrandMark";
 import { ThemeSwitch } from "../ui/ThemeSwitch";
@@ -37,6 +38,7 @@ export const AuthPage = () => {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [oauthNotice, setOauthNotice] = useState("");
   const { login: doLogin, register: doRegister } = useAuth();
   const navigate = useNavigate();
   const { isEnvironmentReady } = useCloud();
@@ -44,6 +46,14 @@ export const AuthPage = () => {
   const goNext = () => {
     if (isEnvironmentReady) navigate("/dashboard");
     else navigate("/workspace");
+  };
+
+  const handleSocialSignIn = (provider) => {
+    setError("");
+    setSuccessMessage("");
+    setOauthNotice(
+      provider === "google" ? "Google Sign-In coming soon" : "Microsoft Sign-In coming soon"
+    );
   };
 
   const handleLogin = async (e) => {
@@ -173,6 +183,7 @@ export const AuthPage = () => {
                     setTab(t);
                     setError("");
                     setSuccessMessage("");
+                    setOauthNotice("");
                   }}
                   className={`relative flex-1 rounded-lg py-2.5 text-sm font-semibold transition-colors ${
                     tab === t ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)]"
@@ -307,6 +318,43 @@ export const AuthPage = () => {
                 </motion.form>
               )}
             </AnimatePresence>
+
+            <div className="relative my-8 flex items-center gap-3">
+              <div className="h-px flex-1 bg-[var(--border)]" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">
+                OR
+              </span>
+              <div className="h-px flex-1 bg-[var(--border)]" />
+            </div>
+
+            {oauthNotice && (
+              <p className="mb-4 rounded-lg bg-[var(--accent-soft)] px-3 py-2 text-center text-sm font-medium text-[var(--accent)]">
+                {oauthNotice}
+              </p>
+            )}
+
+            <div className="grid gap-3">
+              <motion.button
+                type="button"
+                onClick={() => handleSocialSignIn("google")}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                className="cp-btn-ghost w-full justify-center gap-3 border-[var(--border)] py-3"
+              >
+                <FaGoogle className="h-5 w-5 text-[#4285F4]" />
+                Continue with Google
+              </motion.button>
+              <motion.button
+                type="button"
+                onClick={() => handleSocialSignIn("microsoft")}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                className="cp-btn-ghost w-full justify-center gap-3 border-[var(--border)] py-3"
+              >
+                <FaMicrosoft className="h-5 w-5 text-[#0078D4]" />
+                Continue with Microsoft
+              </motion.button>
+            </div>
 
             <p className="mt-8 flex items-center justify-center gap-2 text-xs text-[var(--text-tertiary)]">
               <HiOutlineShieldCheck className="h-4 w-4" />

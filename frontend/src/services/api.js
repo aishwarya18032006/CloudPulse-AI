@@ -74,6 +74,20 @@ export const api = {
 
   chat: (body) => api.request("/chat", { method: "POST", body: JSON.stringify(body) }),
 
+  simulatorAnalyze: (body) =>
+    api.request("/simulator/analyze", { method: "POST", body: JSON.stringify(body) }),
+
+  predictCost: async (data) => {
+    const ML_URL = "http://localhost:8000/predict";
+    const response = await fetch(ML_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error("ML model error");
+    return response.json();
+  },
+
   getProfile: () => api.request("/profile"),
   updateProfile: (body) => api.request("/profile", { method: "PUT", body: JSON.stringify(body) }),
   changePassword: (body) =>

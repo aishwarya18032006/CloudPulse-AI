@@ -71,4 +71,30 @@ router.post("/", optionalAuth, chatRateLimit, async (req, res) => {
   }
 });
 
+router.post("/predict", async (req, res) => {
+  const ML_MODEL_URL = process.env.ML_MODEL_URL || "http://localhost:8000";
+  try {
+    const { data } = req.body;
+    if (!data) {
+      return res.status(400).json({ error: "Missing 'data' in request body" });
+    }
+
+    const response = await fetch(`${ML_MODEL_URL}/predict`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error(`ML server responded with status ${response.status}`);
+    }
+
+    const prediction = await response.json();
+    return res.json(prediction);
+  } catch (err) {
+    console.error("[ML Predict] Error:", err.message);
+    return res.status(500).json({ error: "Failed to get prediction from ML model: " + err.message });
+  }
+});
+
 export default router;

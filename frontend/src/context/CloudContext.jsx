@@ -2,16 +2,24 @@ import { createContext, useContext, useState, useCallback, useEffect, useMemo } 
 import { generateMetrics } from "../utils/demoData";
 import { storage } from "../services/storage";
 import { hasCloudCredentials } from "../utils/cloudCredentials";
+import { persistSimulatorForm, normalizeSimulatorInputs } from "../utils/simulatorInputs";
 
 const CloudContext = createContext(null);
 
 export const CloudProvider = ({ children }) => {
-  const [provider, setProviderState] = useState(() => storage.getProvider() || null);
+  const [provider, setProviderState] = useState(() => {
+    const p = storage.getProvider();
+    if (p === "demo") {
+      const saved = storage.getMetrics();
+      return saved?.fromSimulator ? "demo" : null;
+    }
+    return p || null;
+  });
   const [credentials, setCredentials] = useState(null);
   const [metrics, setMetrics] = useState(() => {
     const saved = storage.getMetrics();
-    if (saved) return saved;
-    return generateMetrics("demo");
+    if (saved?.fromSimulator) return saved;
+    return null;
   });
 
   useEffect(() => {
@@ -19,25 +27,24 @@ export const CloudProvider = ({ children }) => {
     if (legacy) {
       localStorage.removeItem("cloudpulse_provider");
       if (legacy === "demo" && !storage.getProvider()) {
-        storage.setProvider("demo");
-        setProviderState("demo");
+        storage.clearMetrics();
       }
     }
 
     const stored = storage.getProvider();
-    if (stored && stored !== "demo") {
+    if (stored && stored !== "demo" && stored !== provider) {
       storage.clearProvider();
       setProviderState(null);
     }
-  }, []);
+  }, [provider]);
 
   const isEnvironmentReady = useMemo(
-    () => hasCloudCredentials(provider, credentials),
-    [provider, credentials]
+    () => hasCloudCredentials(provider, credentials, metrics),
+    [provider, credentials, metrics]
   );
 
   useEffect(() => {
-    if (provider) {
+    if (provider && provider !== "demo") {
       const saved = storage.getMetrics();
       if (!saved || storage.getProvider() !== provider) {
         const m = generateMetrics(provider);
@@ -49,12 +56,6 @@ export const CloudProvider = ({ children }) => {
 
   const setProvider = useCallback((p, creds = null) => {
     if (p === "demo") {
-      setProviderState("demo");
-      setCredentials(null);
-      storage.setProvider("demo");
-      const m = generateMetrics("demo");
-      setMetrics(m);
-      storage.setMetrics(m);
       return;
     }
 
@@ -68,18 +69,52 @@ export const CloudProvider = ({ children }) => {
     storage.setMetrics(m);
   }, []);
 
+  const completeDemoSimulator = useCallback((simMetrics) => {
+    const inputs = normalizeSimulatorInputs(simMetrics.simulatorInputs || {});
+    const enriched = {
+      ...simMetrics,
+      fromSimulator: true,
+      simulatorInputs: inputs,
+      vmCount: inputs.vmCount,
+      cpu: inputs.cpuUsage,
+      memory: inputs.memoryUsage,
+      storageUsage: inputs.storageUsage,
+      networkTrafficGb: inputs.networkTrafficGb,
+      monthlyCost: inputs.monthlyCost,
+      energyKwh: inputs.energyKwh,
+      carbon: inputs.carbonKg,
+      currentInfra: {
+        ...simMetrics.currentInfra,
+        vms: inputs.vmCount,
+        cost: inputs.monthlyCost,
+      },
+    };
+    persistSimulatorForm(inputs);
+    setProviderState("demo");
+    setCredentials(null);
+    storage.setProvider("demo");
+    setMetrics(enriched);
+    storage.setMetrics(enriched);
+  }, []);
+
   const clearEnvironment = useCallback(() => {
     setProviderState(null);
     setCredentials(null);
+    setMetrics(null);
     storage.clearProvider();
+    storage.clearMetrics();
+    storage.clearSimulatorForm();
   }, []);
 
   const refreshMetrics = useCallback(() => {
+    if (provider === "demo" && metrics?.fromSimulator && metrics.simulatorInputs) {
+      return metrics;
+    }
     const m = generateMetrics(provider || "demo");
     setMetrics(m);
     storage.setMetrics(m);
     return m;
-  }, [provider]);
+  }, [provider, metrics]);
 
   return (
     <CloudContext.Provider
@@ -88,6 +123,7 @@ export const CloudProvider = ({ children }) => {
         credentials,
         metrics,
         setProvider,
+        completeDemoSimulator,
         clearEnvironment,
         refreshMetrics,
         isEnvironmentReady,

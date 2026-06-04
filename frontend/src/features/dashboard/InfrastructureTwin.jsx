@@ -7,6 +7,9 @@ export const InfrastructureTwin = ({ metrics }) => {
   const [optimized, setOptimized] = useState(false);
   const cur = metrics.currentInfra;
   const opt = metrics.optimizedInfra;
+  const userVms = metrics.vmCount ?? cur.vms;
+  const userStorage = cur.storage;
+  const userCost = metrics.monthlyCost ?? cur.cost;
   const costSaved = cur.cost - opt.cost;
   const carbonSaved = Math.round(metrics.carbon * 0.22);
 
@@ -43,9 +46,9 @@ export const InfrastructureTwin = ({ metrics }) => {
           <TwinPanel
             title="Before optimization"
             active={!optimized}
-            vms={cur.vms}
-            storage={cur.storage}
-            cost={cur.cost}
+            vms={userVms}
+            storage={userStorage}
+            cost={userCost}
           />
           <HiOutlineArrowLongRight className="mx-auto hidden h-10 w-10 text-[var(--accent)] lg:block" />
           <TwinPanel

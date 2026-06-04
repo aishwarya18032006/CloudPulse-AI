@@ -30,7 +30,8 @@ export const validateCloudCredentials = (provider, form = {}) => {
   };
 };
 
-export const hasCloudCredentials = (provider, credentials) => {
-  if (!provider || provider === "demo") return provider === "demo";
+export const hasCloudCredentials = (provider, credentials, metrics = null) => {
+  if (!provider) return false;
+  if (provider === "demo") return Boolean(metrics?.fromSimulator);
   return validateCloudCredentials(provider, credentials).valid;
 };

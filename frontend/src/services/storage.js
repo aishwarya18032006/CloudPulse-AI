@@ -3,6 +3,7 @@ const KEYS = {
   user: "cloudpulse_user",
   provider: "cloudpulse_provider",
   metrics: "cloudpulse_metrics",
+  simulatorForm: "cloudpulse_simulator_form",
 };
 
 export const storage = {
@@ -33,4 +34,17 @@ export const storage = {
     }
   },
   setMetrics: (metrics) => localStorage.setItem(KEYS.metrics, JSON.stringify(metrics)),
+  clearMetrics: () => localStorage.removeItem(KEYS.metrics),
+
+  getSimulatorForm: () => {
+    try {
+      const data = localStorage.getItem(KEYS.simulatorForm);
+      return data ? JSON.parse(data) : null;
+    } catch {
+      return null;
+    }
+  },
+  setSimulatorForm: (form) =>
+    localStorage.setItem(KEYS.simulatorForm, JSON.stringify(form)),
+  clearSimulatorForm: () => localStorage.removeItem(KEYS.simulatorForm),
 };

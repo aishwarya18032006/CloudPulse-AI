@@ -4,6 +4,7 @@ import { HiOutlineSparkles, HiOutlineXMark, HiOutlinePaperAirplane } from "react
 import { getChatbotResponse } from "../../utils/chatbotKnowledge";
 import { renderMarkdown } from "../../utils/renderMarkdown";
 import { api } from "../../services/api";
+import { useCloud } from "../../context/CloudContext";
 
 const SUGGESTIONS = [
   "What is Cloud Computing?",
@@ -24,6 +25,7 @@ const toHistory = (messages) =>
     .map((m) => ({ role: m.role, text: m.text }));
 
 export const AIAssistant = () => {
+  const { metrics } = useCloud();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
@@ -31,6 +33,18 @@ export const AIAssistant = () => {
     { role: "assistant", text: WELCOME, at: formatTime() },
   ]);
   const endRef = useRef(null);
+
+  useEffect(() => {
+    if (metrics?.aiRecommendations) {
+      setMessages([
+        {
+          role: "assistant",
+          text: `${WELCOME}\n\nYour latest AI analysis:\n${metrics.aiRecommendations}`,
+          at: formatTime(),
+        },
+      ]);
+    }
+  }, [metrics?.aiRecommendations]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
